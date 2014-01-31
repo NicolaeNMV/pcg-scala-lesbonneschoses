@@ -1,27 +1,27 @@
-@(product: io.prismic.Document, relatedProducts: Seq[io.prismic.Document])(implicit ctx: Prismic.Context)
+@(product: models.Product, relatedProducts: Seq[models.Product])(implicit ctx: Prismic.Context)
 
-@main(id = "product", title = product.getText("product.name")) {
+@main(id = "product", title = product.name.flatMap(_.text)) {
 
   <section id="detail">
 
     <div>
 
-      <img src="@(product.getImage("product.image", "main").map(_.url).getOrElse(routes.Assets.at("images/missing-image.png")))">
+      <img src="@(product.image_main.map(_.url).getOrElse(routes.Assets.at("images/missing-image.png")))">
 
       <h4>
-        <strong>@product.getText("product.name").getOrElse("Missing product name")</strong>
-        @product.getNumber("product.price", "$0.00").map { price =><em>@price</em>}
+        <strong>@product.name.flatMap(_.text).getOrElse("Missing product name")</strong>
+        @product.price("$0.00").map { price =><em>@price</em>}
       </h4>
-      
+
       <h2>
-        @product.getText("product.short_lede").orElse(product.getText("product.name")).getOrElse("Product")
+        @product.short_lede.flatMap(_.text).orElse(product.name.flatMap(_.text)).getOrElse("Product")
       </h2>
 
-      @product.getHtml("product.description", ctx.linkResolver).map(Html.apply)
+      @product.description.flatMap(_.html(ctx.linkResolver)).map(Html.apply)
 
       <p>
-        <a @product.getText("product.flavour").map { flavour => href="@routes.Application.productsByFlavour(flavour, ref = ctx.maybeRef)"}>
-          <strong class="color" style="background: @product.getText("product.color")">@product.getText("product.color")</strong>
+        <a @product.flavour.flatMap(_.text).map { flavour => href="@routes.Application.productsByFlavour(flavour, ref = ctx.maybeRef)"}>
+          <strong class="color" style="background: @product.color.flatMap(_.text)">@product.color.flatMap(_.text)</strong>
         </a>
       </p>
 
@@ -33,13 +33,13 @@
 
   </section>
 
-  @product.getImage("product.gallery", "main").map { img =>
+  @product.gallery_main.map { img =>
     <section id="gallery" style="background-image: url(@img.url)"></section>
   }.getOrElse {
 
     @for(
-      author <- product.getText("product.testimonial_author");
-      quote <- product.getText("product.testimonial_quote")
+      author <- product.testimonial_author.flatMap(_.text);
+      quote <- product.testimonial_quote.flatMap(_.text)
     ) {
       <section id="quote">
         <blockquote>@quote <strong>said @author</strong></blockquote>
@@ -53,15 +53,15 @@
 
       <section id="related" class="products">
 
-        <h2>You might like these as well</h2> 
+        <h2>You might like these as well</h2>
 
         <ul>
           @products.map { product =>
             <li data-category="@product.tags.filter(Application.ProductCategories.contains).headOption">
               <a href="@routes.Application.productDetail(product.id, product.slug, ref = ctx.maybeRef)">
-                <img src="@(product.getImage("product.image", "icon").map(_.url).getOrElse(routes.Assets.at("images/missing-image.png")))">
-                <span>@product.getText("product.name").getOrElse("Product")</span>
-                <em>@product.getNumber("product.price", "$0.00").getOrElse("–")</em>
+                <img src="@(product.image_icon.map(_.url).getOrElse(routes.Assets.at("images/missing-image.png")))">
+                <span>@product.name.flatMap(_.text).getOrElse("Product")</span>
+                <em>@product.price("$0.00").getOrElse("–")</em>
               </a>
             </li>
           }

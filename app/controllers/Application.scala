@@ -11,6 +11,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import Play.current
 
 import io.prismic._
+import models.Product
 
 /**
  * Main controller for the Website.
@@ -194,9 +195,10 @@ object Application extends Controller {
         case Fragment.DocumentLink(id, "product", _, _, false) => id
       }).getOrElse(Nil):_*)
     } yield {
+      val myRelatedProducts = relatedProducts.map{ p => new Product(p) }
       checkSlug(maybeProduct, slug) {
         case Left(newSlug) => MovedPermanently(routes.Application.productDetail(id, newSlug).url)
-        case Right(product) => Ok(views.html.productDetail(product, relatedProducts))
+        case Right(product) => Ok(views.html.productDetail(new Product(product), myRelatedProducts))
       }
     }
   }
